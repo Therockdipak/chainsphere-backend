@@ -26,7 +26,9 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: |
-           touch .env
-           echo "${{secrets.PROD.ENV.FILE}}"
+          touch .env 
+          echo "${{ secrets.PROD_ENV_FILE }}" | tr -d '\r' > .env
+          chmod 600 .env  
+          ls -lah .env 
     - run: pm2 restart index.js
  
