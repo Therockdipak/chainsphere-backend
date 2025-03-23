@@ -21,9 +21,7 @@ app.get("/", (req, res) => {
   res.send("hello world!");
 });
 
-app.get("/apii", (req, res)=>{
-  res.send("hey it working")
-})
+
 
 app.listen(port, (req, res) => {
   console.log(`server is listening on ${port}`);

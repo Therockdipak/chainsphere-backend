@@ -93,7 +93,7 @@ export const userSignupHandle = async (req, res) => {
 
       return res
         .status(201)
-        .json(new ApiResponse(200, {}, `user created successfully`));
+        .json(new ApiResponse(200, {}, `The OTP has been successfully sent to your registered email address. Please check your inbox`));
     }
   } catch (error) {
     console.log(`error while signup ${error}`);
