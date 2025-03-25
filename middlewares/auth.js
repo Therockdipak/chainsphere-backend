@@ -3,7 +3,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import prisma from "../DB/config.js";
 
 export const verifyJwt = async (req, res, next) => {
-  const token = req.header("Authorization")?.replace("Bearer", " ");
+  const token = req.header("Authorization")?.replace("Bearer ", "").trim();
+  console.log(`token ---------------->`, token);
+  
 
   if (!token) {
     return res

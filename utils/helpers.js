@@ -8,3 +8,10 @@ export const generateOTP =()=> {
 }
 
 
+
+export const getExpirationTime = () => {
+    // console.log(new Date(Date.now() + 5 * 60 * 1000));
+    return new Date(Date.now() + 1 * 60 * 1000); // Current time + 5 minutes
+};
+  
+
