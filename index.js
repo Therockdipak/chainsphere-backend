@@ -8,7 +8,10 @@ const app = express();
 const port = process.env.PORT || 8001;
 
 app.use(express.json());
+app.use("/api/v1",express.static("public"))
+
 app.use(express.urlencoded({ extended: true }));
+
 app.use(
   cors({
     origin: process.env.ORIGIN,

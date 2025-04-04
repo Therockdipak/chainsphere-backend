@@ -6,9 +6,6 @@ import adminRouter from "./admin.routes.js";
 const rootRouter = Router()
 
 rootRouter.use("/user", userRouter)
-adminRouter.use("/admin", adminRouter)
-
-
-
+rootRouter.use("/admin", adminRouter)
 
 export default rootRouter;

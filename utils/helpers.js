@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { nanoid } from "nanoid";
 
 
 export const generateOTP =()=> {
@@ -8,10 +9,16 @@ export const generateOTP =()=> {
 }
 
 
+export const generateCode = ()=>{
+    // console.log(`nano code -------------->`, nanoid(8).toUpperCase());
+    return nanoid(8).toUpperCase()
+    
+}
+
 
 export const getExpirationTime = () => {
     // console.log(new Date(Date.now() + 5 * 60 * 1000));
-    return new Date(Date.now() + 1 * 60 * 1000); // Current time + 5 minutes
+    return new Date(Date.now() + 5 * 60 * 1000); // Current time + 5 minutes
 };
   
 
