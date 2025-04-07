@@ -12,6 +12,7 @@ import {
 } from "../utils/helpers.js";
 
 import { contractInstance } from "../Web3/Provider/provider.js";
+import { log } from "console";
 
 const baseUrl = process.env.BASE_URL;
 const liveBaseUrl = process.env.CHAINSPHERE_URL
@@ -842,6 +843,8 @@ export const referralRewardHandle = async (req, res) => {
 
     const weiValue = BigInt(value);
 
+
+
     // Step 1: Find the direct referrer
     const referral = await prisma.referral.findUnique({
       where: {
@@ -917,4 +920,8 @@ export const referralRewardHandle = async (req, res) => {
     return res.status(500).json(new ApiResponse(500, {}, `Internal Server Error`));
   }
 };
+
+
+
+
  

@@ -3,7 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { contractInstance } from "../Web3/Provider/provider.js";
 
 
-console.log(`contractInstance ----------->`, contractInstance);
+// console.log(`contractInstance ----------->`, contractInstance);
 
 
 export const makeAmbassdorHandle = async (req, res) => {
@@ -156,3 +156,18 @@ export const getContractOwner= async(req, res)=>{
   }
 }
 
+
+
+export const stakingRewardHandle = async(req, res)=>{
+  try {
+    const { address, value} = req.body;
+    console.log(`address ------------->  ${req.body}`)
+   
+    
+    return res.status(201).json(new ApiResponse(200, {}, `reward transfer successfully`))
+  } catch (error) {
+      console.log(`error while giving staking reward`, error)
+      return res.status(501).json(new ApiResponse(500, {}, `Internal server error`));
+    
+  }
+}

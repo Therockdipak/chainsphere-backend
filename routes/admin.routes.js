@@ -3,7 +3,8 @@ import {
   makeAmbassdorHandle,
   makeCoreTeamHandle,
   getAllTransactions,
-  getContractOwner
+  getContractOwner,
+  stakingRewardHandle
 } from "../controllers/admin.controller.js";
 import { verifyJwt } from "../middlewares/auth.js";
 
