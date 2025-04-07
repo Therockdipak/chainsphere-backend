@@ -51,6 +51,8 @@ model Transaction {
   id              Int      @id @default(autoincrement())
   transactionHash String   @unique
   amount          String
+  price           String
+  value           String
   status          String
   type            String
   userId          Int
@@ -99,7 +101,7 @@ model User {
   otpExpiresAt  DateTime?
   walletAddress String?   @unique
   referralCode  String?   @unique
-  documentId   String?
+  documentId    String?
   documentFront String?
   documentBack  String?
   transactions  Transaction[]

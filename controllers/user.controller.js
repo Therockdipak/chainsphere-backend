@@ -538,13 +538,15 @@ export const myProfileHandle = async (req, res) => {
 
 export const transactionDetailsHandle = async (req, res) => {
   try {
-    const { transactionHash, amount, status, type } = req.body;
+    const { transactionHash, amount, price, value, status, type } = req.body;
 
     const schema = Joi.object({
       transactionHash: Joi.string().required(),
       amount: Joi.string().required(),
-      status: Joi.string().valid("pending", "completed", "failed").required(),
-      type: Joi.string().valid("deposit", "withdrawal", "transfer").required(),
+      price: Joi.string().required(),
+      value: Joi.string().required(),
+      status: Joi.string().required(),
+      type: Joi.string().valid("deposit", "withdrawal", "transfer", "buy", "reward", "claim").required(),
     });
 
     const { error } = schema.validate(req.body);
@@ -571,6 +573,8 @@ export const transactionDetailsHandle = async (req, res) => {
         userId: req.user.id,
         transactionHash,
         amount,
+        price,
+        value,
         status,
         type,
       },

@@ -160,8 +160,11 @@ export const getContractOwner= async(req, res)=>{
 
 export const stakingRewardHandle = async(req, res)=>{
   try {
-    const { address, value} = req.body;
+    const { address, value, timestamp} = req.body;
     console.log(`address ------------->  ${req.body}`)
+
+    const contract = contractInstance()
+    const stakeReward = contract.stakeReward(address, value, timestamp);
    
     
     return res.status(201).json(new ApiResponse(200, {}, `reward transfer successfully`))
