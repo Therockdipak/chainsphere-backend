@@ -594,8 +594,9 @@ export const getMyTransactionHandle = async (req, res) => {
         userId: req.user.id,
       },
     });
+    console.log("txx-------------->", txs.length)
 
-    if (txs.length < 0)
+    if (txs.length <= 0)
       return res
         .status(404)
         .json(new ApiResponse(400, {}, `Transactions does not exists`));

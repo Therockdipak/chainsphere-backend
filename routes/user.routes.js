@@ -12,7 +12,9 @@ import {
   myProfileHandle,
   referralRewardHandle,
   getAllreferralsHandle,
-  getMyTransactionHandle
+  getMyTransactionHandle,
+  transactionDetailsHandle,
+  
 
 } from "../controllers/user.controller.js";
 
@@ -25,7 +27,8 @@ userRouter.post("/verifyOtp", verifyOtpHandle);
 userRouter.post("/resendOtp", resendOtpHandle);
 userRouter.post("/changePassword", verifyJwt, changePasswordHandle)
 userRouter.get("/referrals", verifyJwt, getAllreferralsHandle)
-userRouter.get("/transaction", verifyJwt, getMyTransactionHandle)
+userRouter.get("/transactions", verifyJwt, getMyTransactionHandle)
+userRouter.post("/transaction", verifyJwt, transactionDetailsHandle)
 userRouter.post("/documents", verifyJwt, upload.array(`images`, 2),uploadDocumentsHandle)
 userRouter.post("/refferal-reward", verifyJwt, referralRewardHandle)
 
