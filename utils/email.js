@@ -41,7 +41,6 @@ export const verifyOtpMail = async function (name,to, otp){
         context: {
             name,
             otp
-        
         },
     };
 

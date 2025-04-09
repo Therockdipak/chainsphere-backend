@@ -12,10 +12,9 @@ import {
 } from "../utils/helpers.js";
 
 import { contractInstance } from "../Web3/Provider/provider.js";
-import { log } from "console";
 
 const baseUrl = process.env.BASE_URL;
-const liveBaseUrl = process.env.CHAINSPHERE_URL
+const liveBaseUrl = process.env.CHAINSPHERE_URL;
 const secretKey = process.env.JWT_SECRET_KEY;
 
 // Helper function to find the root user (the first user in the referral tree)
@@ -38,7 +37,6 @@ const findRootUser = async (userId) => {
 
   return null;
 };
-
 
 export const userSignupHandle = async (req, res) => {
   try {
@@ -188,6 +186,7 @@ export const verifyOtpHandle = async (req, res) => {
         .json(new ApiResponse(404, {}, `User does not exist, please sign up`));
     }
 
+    console.log(user.otp, user.otpExpiresAt, new Date());
     // Check if OTP exists and is not expired
     if (!user.otp || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
       return res
@@ -336,7 +335,7 @@ export const loginHandle = async (req, res) => {
         state: user.state,
         city: user.city,
         referral: user.referralCode,
-        walletAddress: user.walletAddress
+        walletAddress: user.walletAddress,
       };
 
       return res
@@ -359,23 +358,20 @@ export const loginHandle = async (req, res) => {
 
 export const changePasswordHandle = async (req, res) => {
   try {
-    const { email, oldPassword, newPassword, confirmPassword } = req.body;
+    const { email, password, confirmPassword } = req.body;
 
     // ✅ Validate input
     const schema = Joi.object({
       email: Joi.string().email().required().messages({
         "any.required": "Email is required",
       }),
-      oldPassword: Joi.string().min(8).required().messages({
-        "string.min": "Old password must be at least 8 characters long",
-        "any.required": "Old password is required",
-      }),
-      newPassword: Joi.string().min(8).required().messages({
+
+      password: Joi.string().min(8).required().messages({
         "string.min": "New password must be at least 8 characters long",
         "any.required": "New password is required",
       }),
       confirmPassword: Joi.string()
-        .valid(Joi.ref("newPassword"))
+        .valid(Joi.ref("password"))
         .required()
         .messages({
           "any.only": "Confirm Password must match New Password",
@@ -400,28 +396,22 @@ export const changePasswordHandle = async (req, res) => {
         .status(404)
         .json(new ApiResponse(404, {}, `User does not exist`));
 
-    // ✅ Verify old password
-    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
-    if (!isOldPasswordValid)
-      return res
-        .status(401)
-        .json(new ApiResponse(401, {}, `Incorrect old password`));
+    // ✅ Is Same Password
+    const isSamePassword = await bcrypt.compare(password, user.password);
 
-    // ✅ Prevent reusing the same password
-    const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword)
       return res
-        .status(400)
+        .status(401)
         .json(
           new ApiResponse(
             400,
             {},
-            `New password cannot be the same as the old password`
+            `old password and new password must be different`
           )
         );
 
     // ✅ Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // ✅ Update password in database
     await prisma.user.update({
@@ -442,55 +432,58 @@ export const changePasswordHandle = async (req, res) => {
   }
 };
 
-// export const forgotPasswordHandle = async (req, res) => {
-//   try {
-//     const { email, password, confirmPassword } = req.body;
+export const forgotPasswordHandle = async (req, res) => {
+  try {
+    const { email } = req.body;
 
-//     // ✅ Validate input
-//     const schema = Joi.object({
-//       email: Joi.string().email().required().messages({
-//         "any.required": "Email is required",
-//       }),
+    // ✅ Validate input
+    const schema = Joi.object({
+      email: Joi.string().email().required().messages({
+        "any.required": "Email is required",
+      }),
+    });
 
-//       password: Joi.string().min(8).required().messages({
-//         "string.min": "New password must be at least 8 characters long",
-//         "any.required": "New password is required",
-//       }),
-//       confirmPassword: Joi.string()
-//         .valid(Joi.ref("password"))
-//         .required()
-//         .messages({
-//           "any.only": "Confirm Password must match password",
-//           "any.required": "Confirm Password is required",
-//         }),
-//     });
+    const { error } = schema.validate(req.body);
+    if (error) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, error.details[0].message));
+    }
 
-//     const { error } = schema.validate(req.body);
-//     if (error) {
-//       return res
-//         .status(400)
-//         .json(new ApiResponse(400, {}, error.details[0].message));
-//     }
+    const user = await prisma.user.findUnique({ where: { email } });
 
-//     const user = await prisma.user.findUnique({ where: { email } });
+    if (!user)
+      return res
+        .status(404)
+        .json(new ApiResponse(404, {}, `User does not exist`));
 
-//     if (!user)
-//       return res
-//         .status(404)
-//         .json(new ApiResponse(404, {}, `User does not exist`));
+    const otp = generateOTP();
+    const expiryTime = getExpirationTime();
+    await prisma.user.update({
+      where: { email },
+      data: {
+        otp: otp,
+        otpExpiresAt: expiryTime,
+      },
+    });
 
-//     const hashedPassword = await bcrypt.hash(password, 10);
-//     await prisma.user.update({
-//       where:{email},
-//       data:{
-//         password: hashedPassword
-//       }
-//     })
-//   } catch (error) {
-//     console.log(`error while forgot password ${error.message}`)
-//     return res.status(501).json(new ApiResponse(500, {}, `Internal Server Error`))
-//   }
-// };
+    await verifyOtpMail(user.firstName, email, otp);
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(
+          200,
+          {},
+          `The OTP has been successfully sent to your registered email address. Please check your inbox `
+        )
+      );
+  } catch (error) {
+    console.log(`error while forgot password ${error.message}`);
+    return res
+      .status(501)
+      .json(new ApiResponse(500, {}, `Internal Server Error`));
+  }
+};
 
 export const myProfileHandle = async (req, res) => {
   try {
@@ -522,7 +515,7 @@ export const myProfileHandle = async (req, res) => {
       walletAddress: user.walletAddress,
       documentId: user.documentId,
       documentFrontImage: `${baseUrl}/temp/${user.documentFront}`,
-      documentBackImage: `${baseUrl}/temp/${user.documentBack}`
+      documentBackImage: `${baseUrl}/temp/${user.documentBack}`,
     };
 
     return res
@@ -546,7 +539,9 @@ export const transactionDetailsHandle = async (req, res) => {
       price: Joi.string().required(),
       value: Joi.string().required(),
       status: Joi.string().required(),
-      type: Joi.string().valid("deposit", "withdrawal", "transfer", "buy", "reward", "claim").required(),
+      type: Joi.string()
+        .valid("deposit", "withdrawal", "transfer", "buy", "reward", "claim")
+        .required(),
     });
 
     const { error } = schema.validate(req.body);
@@ -598,7 +593,7 @@ export const getMyTransactionHandle = async (req, res) => {
         userId: req.user.id,
       },
     });
-    console.log("txx-------------->", txs.length)
+    console.log("txx-------------->", txs.length);
 
     if (txs.length <= 0)
       return res
@@ -722,22 +717,36 @@ export const updateAddressOfUserHandle = async (req, res) => {
         .status(404)
         .json(new ApiResponse(400, {}, `User does not exists`));
 
-    await prisma.user.update({
-      where: {
-        id: req.user.id,
-      },
-      data: {
-        walletAddress: address,
-      },
-    });
+    // console.log("walletAddress ---------->", user.walletAddress);
 
-    return res
-      .status(201)
-      .json(new ApiResponse(200, {}, `address added successfully`));
+    if (user.walletAddress == null) {
+      await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          walletAddress: address,
+        },
+      });
+
+      return res
+        .status(201)
+        .json(new ApiResponse(200, {}, `address added successfully`));
+    } else {
+      if (user.walletAddress == address) {
+        return res
+          .status(401)
+          .json(new ApiResponse(400, {}, `wallet address already added`));
+      } else {
+        return res
+          .status(401)
+          .json(new ApiResponse(400, {}, `Invalid wallet address`));
+      }
+    }
   } catch (error) {
     console.log(`error while adding  address ${error.message}`);
     return res
-      .status(501)
+      .status(501) 
       .json(new ApiResponse(500, {}, `Internal Server Error`));
   }
 };
@@ -848,8 +857,6 @@ export const referralRewardHandle = async (req, res) => {
 
     const weiValue = BigInt(value);
 
-
-
     // Step 1: Find the direct referrer
     const referral = await prisma.referral.findUnique({
       where: {
@@ -868,18 +875,23 @@ export const referralRewardHandle = async (req, res) => {
     });
 
     if (!referral) {
-      return res.status(404).json(new ApiResponse(400, {}, `Referral does not exist`));
+      return res
+        .status(404)
+        .json(new ApiResponse(400, {}, `Referral does not exist`));
     }
 
     const referrer = referral.referrer;
     console.log("Direct Referrer Wallet Address:", referrer.walletAddress);
 
     // Step 2: Calculate direct reward (10%)
-    const directReward =  weiValue / BigInt(10);;
+    const directReward = weiValue / BigInt(10);
 
     // Step 3: Send direct reward
     // const approveTx = await contractInstance.approve()
-    const directTx = await contractInstance.transfer(referrer.walletAddress, directReward);
+    const directTx = await contractInstance.transfer(
+      referrer.walletAddress,
+      directReward
+    );
 
     // Step 4: Store direct reward transaction
     await prisma.transaction.create({
@@ -904,7 +916,10 @@ export const referralRewardHandle = async (req, res) => {
       if (isCoreTeamMember) {
         // Step 7: Calculate and send root reward (2.5%)
         const rootReward = (2.5 / 100) * value;
-        const rootTx = await contractInstance.transfer(rootUser.walletAddress, rootReward);
+        const rootTx = await contractInstance.transfer(
+          rootUser.walletAddress,
+          rootReward
+        );
 
         // Step 8: Store root reward transaction
         await prisma.transaction.create({
@@ -919,14 +934,22 @@ export const referralRewardHandle = async (req, res) => {
       }
     }
 
-    return res.status(200).json(new ApiResponse(200, {}, `Rewards sent successfully`));
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, `Rewards sent successfully`));
   } catch (error) {
     console.log(`Error while distributing rewards: ${error.message}`);
-    return res.status(500).json(new ApiResponse(500, {}, `Internal Server Error`));
+    return res
+      .status(500)
+      .json(new ApiResponse(500, {}, `Internal Server Error`));
   }
 };
 
 
 
 
- 
+
+// round 25%
+// round 15%
+// round 10%
+// round 3 %

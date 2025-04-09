@@ -14,6 +14,8 @@ import {
   getAllreferralsHandle,
   getMyTransactionHandle,
   transactionDetailsHandle,
+  updateAddressOfUserHandle,
+  forgotPasswordHandle
   
 
 } from "../controllers/user.controller.js";
@@ -25,11 +27,14 @@ userRouter.post("/signup", userSignupHandle);
 userRouter.post("/login", loginHandle);
 userRouter.post("/verifyOtp", verifyOtpHandle);
 userRouter.post("/resendOtp", resendOtpHandle);
-userRouter.post("/changePassword", verifyJwt, changePasswordHandle)
+userRouter.post("/change-password", verifyJwt, changePasswordHandle)
 userRouter.get("/referrals", verifyJwt, getAllreferralsHandle)
 userRouter.get("/transactions", verifyJwt, getMyTransactionHandle)
 userRouter.post("/transaction", verifyJwt, transactionDetailsHandle)
 userRouter.post("/documents", verifyJwt, upload.array(`images`, 2),uploadDocumentsHandle)
 userRouter.post("/refferal-reward", verifyJwt, referralRewardHandle)
+userRouter.post("/add-address", verifyJwt, updateAddressOfUserHandle)
+userRouter.post("/forgot-password", verifyJwt, forgotPasswordHandle )
+
 
 export default userRouter;

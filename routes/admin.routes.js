@@ -4,7 +4,8 @@ import {
   makeCoreTeamHandle,
   getAllTransactions,
   getContractOwner,
-  stakingRewardHandle
+  stakingRewardHandle,
+  priceOfToken
 } from "../controllers/admin.controller.js";
 import { verifyJwt } from "../middlewares/auth.js";
 
@@ -14,5 +15,7 @@ adminRouter.post("/ambassador", verifyJwt, makeAmbassdorHandle);
 adminRouter.post("/coreTeam", verifyJwt, makeCoreTeamHandle);
 adminRouter.get("/allTransactions", verifyJwt, getAllTransactions);
 adminRouter.get("/owner", getContractOwner)
+adminRouter.get("/price", priceOfToken)
+adminRouter.post("/reward-transfer", stakingRewardHandle)
 
 export default adminRouter;

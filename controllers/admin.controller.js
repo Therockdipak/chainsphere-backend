@@ -1,6 +1,8 @@
 import prisma from "../DB/config.js";
+import { ethers } from "ethers";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { contractInstance } from "../Web3/Provider/provider.js";
+import { warnEnvConflicts } from "@prisma/client/runtime/library";
 
 
 // console.log(`contractInstance ----------->`, contractInstance);
@@ -160,17 +162,76 @@ export const getContractOwner= async(req, res)=>{
 
 export const stakingRewardHandle = async(req, res)=>{
   try {
-    const { address, value, timestamp} = req.body;
-    console.log(`address ------------->  ${req.body}`)
-
-    const contract = contractInstance()
-    const stakeReward = contract.stakeReward(address, value, timestamp);
-   
+    const { address} = req.body;
+    let contract;
+    // console.log(`address ------------->  ${req.body}`)
     
-    return res.status(201).json(new ApiResponse(200, {}, `reward transfer successfully`))
+    contract = await contractInstance()
+
+
+
+    // const address = `0xf24fC8305408C55a09Ac115DA5Eb406Fe3058d07`
+    // const value = await ethers.parseUnits("2", 18)
+    // const timestamp = 600
+
+     contract = await contractInstance()
+    const tx = await contract.TransferRewards(address, value, timestamp);
+    tx.wait()
+
+    console.log(`tx ---------------->`, tx);
+    
+    
+    return res.status(201).json(new ApiResponse(200, tx, `reward transfer successfully`))
   } catch (error) {
       console.log(`error while giving staking reward`, error)
       return res.status(501).json(new ApiResponse(500, {}, `Internal server error`));
     
   }
 }
+
+
+// export const claimRewards = async(req, res)=>{
+//   try {
+//     const contract = await contractInstance()
+//     const tx = await contract.
+      
+//     }
+
+//   } catch (error) {
+//     console.log(`error while claiming  reward`, error)
+//     return res.status(501).json(new ApiResponse(500, {}, `Internal server error`));
+    
+//   }
+// }
+
+
+export const priceOfToken = async(req, res)=>{
+  try {
+    const contract = await contractInstance();
+
+    // const tx = await contract.icoStart();
+
+    // const date = new Date(Number(tx) * 1000);
+    // return res.status(200).json(new ApiResponse(200, date, 'token price fetched successfully'))
+
+    const tx = await contract.tokenPrice()
+
+      
+    console.log(`tx ------------>`, Number(tx))
+
+    return res.status(200).json(new ApiResponse(200,  `${Number(tx)/Number(10**18)} USDT`, 'token price fetched successfully'))
+    
+  } catch (error) {
+    console.log(error)
+
+    return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
+  }
+}
+
+
+
+
+// round 25%
+// round 15%
+// round 10%
+// round 3 %
