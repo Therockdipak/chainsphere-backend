@@ -15,7 +15,8 @@ import {
   getMyTransactionHandle,
   transactionDetailsHandle,
   updateAddressOfUserHandle,
-  forgotPasswordHandle
+  forgotPasswordHandle,
+  getReferralCodeHandle
   
 
 } from "../controllers/user.controller.js";
@@ -35,6 +36,7 @@ userRouter.post("/documents", verifyJwt, upload.array(`images`, 2),uploadDocumen
 userRouter.post("/refferal-reward", verifyJwt, referralRewardHandle)
 userRouter.post("/add-address", verifyJwt, updateAddressOfUserHandle)
 userRouter.post("/forgot-password", verifyJwt, forgotPasswordHandle )
+userRouter.get("/referral-code/:id", verifyJwt, getReferralCodeHandle)
 
 
 export default userRouter;

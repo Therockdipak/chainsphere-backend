@@ -12,6 +12,7 @@ import {
 } from "../utils/helpers.js";
 
 import { contractInstance } from "../Web3/Provider/provider.js";
+import { id } from "ethers";
 
 const baseUrl = process.env.BASE_URL;
 const liveBaseUrl = process.env.CHAINSPHERE_URL;
@@ -334,7 +335,7 @@ export const loginHandle = async (req, res) => {
         country: user.country,
         state: user.state,
         city: user.city,
-        referral: user.referralCode,
+        referralCode: user.referralCode,
         walletAddress: user.walletAddress,
       };
 
@@ -751,6 +752,9 @@ export const updateAddressOfUserHandle = async (req, res) => {
   }
 };
 
+
+
+
 // export const referralRewardHandle = async (req, res) => {
 //   try {
 //     const { value } = req.body;
@@ -944,6 +948,54 @@ export const referralRewardHandle = async (req, res) => {
       .json(new ApiResponse(500, {}, `Internal Server Error`));
   }
 };
+
+
+export const getReferralCodeHandle =async(req, res)=>{
+  try {
+    const { id } = req.params;
+
+    const schema = Joi.object({
+      id: Joi.number().positive().required().messages({
+        'any.required': 'ID is required',
+      }),
+    });
+    const { error } = schema.validate(req.params);
+
+    if (error) {
+      return res
+        .status(401)
+        .json(new ApiResponse(400, {}, error.details[0].message));
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+       id: parseInt(id),
+      },
+    });
+
+
+    if (!user)
+      return res
+        .status(401)
+        .json(new ApiResponse(400, {}, `user doesn't exists`));
+
+
+
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      referralCode: user.referralCode
+    }
+    return res.status(201).json(new ApiResponse(200, userResponse, `user response fetched successfully`))
+
+
+    
+  } catch (error) {
+    console.log(`error while getting referral code  ${error}`)
+    return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
+    
+  }
+}
 
 
 
