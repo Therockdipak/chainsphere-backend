@@ -74,7 +74,12 @@ export const userSignupHandle = async (req, res) => {
       ibiId: Joi.string().alphanum().min(5).max(20).required().messages({
         "string.alphanum": "IBI ID must contain only letters and numbers",
       }),
+      referralCode: Joi.string().allow('').optional(),
     });
+
+
+    console.log(`req.body ---------->`, req.body);
+    
 
     const { error } = schema.validate(req.body);
 
