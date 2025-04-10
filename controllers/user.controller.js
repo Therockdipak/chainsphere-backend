@@ -74,7 +74,6 @@ export const userSignupHandle = async (req, res) => {
       ibiId: Joi.string().alphanum().min(5).max(20).required().messages({
         "string.alphanum": "IBI ID must contain only letters and numbers",
       }),
-      referralCode: Joi.string().optional(),
     });
 
     const { error } = schema.validate(req.body);
@@ -857,7 +856,7 @@ export const uploadDocumentsHandle = async (req, res) => {
 
 export const referralRewardHandle = async (req, res) => {
   try {
-    const { value } = req.body;
+    const { value, price } = req.body;
 
     const weiValue = BigInt(value);
 
@@ -892,51 +891,58 @@ export const referralRewardHandle = async (req, res) => {
 
     // Step 3: Send direct reward
     // const approveTx = await contractInstance.approve()
-    const directTx = await contractInstance.transfer(
+    const contract = await contractInstance()
+    const directTx = await contract.transfer(
       referrer.walletAddress,
       directReward
     );
+
+    directTx.wait()
+
+    console.log(`directtx --------->`, directTx)
 
     // Step 4: Store direct reward transaction
     await prisma.transaction.create({
       data: {
         userId: referrer.id,
         transactionHash: directTx.hash,
-        amount: directReward.toString(),
+        amount: "0",
+        price: price,
+        value: directReward.toString(),
         status: "completed",
         type: "reward",
       },
     });
 
     // Step 5: Find the root user (the first user in the referral chain)
-    const rootUser = await findRootUser(referrer.id);
+    // const rootUser = await findRootUser(referrer.id);
 
-    if (rootUser) {
-      // Step 6: Check if root user is a Core Team Member
-      const isCoreTeamMember = await prisma.coreTeamMembers.findUnique({
-        where: { userId: rootUser.id },
-      });
+    // if (rootUser) {
+    //   // Step 6: Check if root user is a Core Team Member
+    //   const isCoreTeamMember = await prisma.coreTeamMembers.findUnique({
+    //     where: { userId: rootUser.id },
+    //   });
 
-      if (isCoreTeamMember) {
-        // Step 7: Calculate and send root reward (2.5%)
-        const rootReward = (2.5 / 100) * value;
-        const rootTx = await contractInstance.transfer(
-          rootUser.walletAddress,
-          rootReward
-        );
+    //   if (isCoreTeamMember) {
+    //     // Step 7: Calculate and send root reward (2.5%)
+    //     const rootReward = (2.5 / 100) * value;
+    //     const rootTx = await contractInstance.transfer(
+    //       rootUser.walletAddress,
+    //       rootReward
+    //     );
 
-        // Step 8: Store root reward transaction
-        await prisma.transaction.create({
-          data: {
-            userId: rootUser.id,
-            transactionHash: rootTx.hash,
-            amount: rootReward.toString(),
-            status: "completed",
-            type: "reward",
-          },
-        });
-      }
-    }
+    //     // Step 8: Store root reward transaction
+    //     await prisma.transaction.create({
+    //       data: {
+    //         userId: rootUser.id,
+    //         transactionHash: rootTx.hash,
+    //         amount: rootReward.toString(),
+    //         status: "completed",
+    //         type: "reward",
+    //       },
+    //     });
+    //   }
+    // }
 
     return res
       .status(200)
