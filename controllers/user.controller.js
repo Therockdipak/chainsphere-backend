@@ -952,24 +952,11 @@ export const referralRewardHandle = async (req, res) => {
 
 export const getReferralCodeHandle =async(req, res)=>{
   try {
-    const { id } = req.params;
-
-    const schema = Joi.object({
-      id: Joi.number().positive().required().messages({
-        'any.required': 'ID is required',
-      }),
-    });
-    const { error } = schema.validate(req.params);
-
-    if (error) {
-      return res
-        .status(401)
-        .json(new ApiResponse(400, {}, error.details[0].message));
-    }
-
+ 
+   
     const user = await prisma.user.findUnique({
       where: {
-       id: parseInt(id),
+       id: req.user.id,
       },
     });
 

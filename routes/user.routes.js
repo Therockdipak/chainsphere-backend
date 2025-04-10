@@ -36,7 +36,7 @@ userRouter.post("/documents", verifyJwt, upload.array(`images`, 2),uploadDocumen
 userRouter.post("/refferal-reward", verifyJwt, referralRewardHandle)
 userRouter.post("/add-address", verifyJwt, updateAddressOfUserHandle)
 userRouter.post("/forgot-password", verifyJwt, forgotPasswordHandle )
-userRouter.get("/referral-code/:id", verifyJwt, getReferralCodeHandle)
+userRouter.get("/referral-code", verifyJwt, getReferralCodeHandle)
 
 
 export default userRouter;
