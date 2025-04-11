@@ -12,7 +12,6 @@ import {
 } from "../utils/helpers.js";
 
 import { contractInstance } from "../Web3/Provider/provider.js";
-import { id } from "ethers";
 
 const baseUrl = process.env.BASE_URL;
 const liveBaseUrl = process.env.CHAINSPHERE_URL;
@@ -74,12 +73,10 @@ export const userSignupHandle = async (req, res) => {
       ibiId: Joi.string().alphanum().min(5).max(20).required().messages({
         "string.alphanum": "IBI ID must contain only letters and numbers",
       }),
-      referralCode: Joi.string().allow('').optional(),
+      referralCode: Joi.string().allow("").optional(),
     });
 
-
     console.log(`req.body ---------->`, req.body);
-    
 
     const { error } = schema.validate(req.body);
 
@@ -704,26 +701,45 @@ export const updateAddressOfUserHandle = async (req, res) => {
         "string.max": "Address cannot exceed 200 characters",
       }),
     });
-    const { error } = schema.validate(req.body);
 
+    const { error } = schema.validate(req.body);
     if (error) {
       return res
         .status(401)
         .json(new ApiResponse(400, {}, error.details[0].message));
     }
+
     const user = await prisma.user.findUnique({
       where: {
         id: req.user.id,
       },
     });
 
-    if (!user)
+    if (!user) {
       return res
         .status(404)
-        .json(new ApiResponse(400, {}, `User does not exists`));
+        .json(new ApiResponse(400, {}, `User does not exist`));
+    }
 
-    // console.log("walletAddress ---------->", user.walletAddress);
+    // Check if wallet address is already taken by another user
+    const isAddressTaken = await prisma.user.findFirst({
+      where: {
+        walletAddress: address,
+        NOT: {
+          id: req.user.id,
+        },
+      },
+    });
 
+    if (isAddressTaken) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(400, {}, `This wallet address is already in use`)
+        );
+    }
+
+    // Check if user has already set wallet address
     if (user.walletAddress == null) {
       await prisma.user.update({
         where: {
@@ -736,12 +752,12 @@ export const updateAddressOfUserHandle = async (req, res) => {
 
       return res
         .status(201)
-        .json(new ApiResponse(200, {}, `address added successfully`));
+        .json(new ApiResponse(200, {}, `Address added successfully`));
     } else {
-      if (user.walletAddress == address) {
+      if (user.walletAddress === address) {
         return res
           .status(401)
-          .json(new ApiResponse(400, {}, `wallet address already added`));
+          .json(new ApiResponse(400, {}, `Wallet address already added`));
       } else {
         return res
           .status(401)
@@ -749,15 +765,12 @@ export const updateAddressOfUserHandle = async (req, res) => {
       }
     }
   } catch (error) {
-    console.log(`error while adding  address ${error.message}`);
+    console.log(`Error while adding address: ${error.message}`);
     return res
-      .status(501) 
+      .status(501)
       .json(new ApiResponse(500, {}, `Internal Server Error`));
   }
 };
-
-
-
 
 // export const referralRewardHandle = async (req, res) => {
 //   try {
@@ -896,15 +909,15 @@ export const referralRewardHandle = async (req, res) => {
 
     // Step 3: Send direct reward
     // const approveTx = await contractInstance.approve()
-    const contract = await contractInstance()
+    const contract = await contractInstance();
     const directTx = await contract.transfer(
       referrer.walletAddress,
       directReward
     );
 
-    directTx.wait()
+    directTx.wait();
 
-    console.log(`directtx --------->`, directTx)
+    console.log(`directtx --------->`, directTx);
 
     // Step 4: Store direct reward transaction
     await prisma.transaction.create({
@@ -960,45 +973,52 @@ export const referralRewardHandle = async (req, res) => {
   }
 };
 
-
-export const getReferralCodeHandle =async(req, res)=>{
+export const getReferralCodeHandle = async (req, res) => {
   try {
- 
-   
     const user = await prisma.user.findUnique({
       where: {
-       id: req.user.id,
+        id: req.user.id,
       },
     });
-
 
     if (!user)
       return res
         .status(401)
         .json(new ApiResponse(400, {}, `user doesn't exists`));
 
-
-
     const userResponse = {
       id: user.id,
       email: user.email,
-      referralCode: user.referralCode
-    }
-    return res.status(201).json(new ApiResponse(200, userResponse, `user response fetched successfully`))
-
-
-    
+      referralCode: user.referralCode,
+    };
+    return res
+      .status(201)
+      .json(
+        new ApiResponse(200, userResponse, `user response fetched successfully`)
+      );
   } catch (error) {
-    console.log(`error while getting referral code  ${error}`)
-    return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
-    
+    console.log(`error while getting referral code  ${error}`);
+    return res
+      .status(501)
+      .json(new ApiResponse(500, {}, `Internal server error`));
   }
-}
+};
 
+export const sendReferralRewardHandle = async (req, res) => {
+  try {
+    const contract = await contractInstance();
+    const tx = await contract.userDetails(_address);
 
+    console.log(`tx ------------>`, tx);
+  } catch (error) {
+    console.log(`error while sending  referral reward  ${error}`);
+    return res
+      .status(501)
+      .json(new ApiResponse(500, {}, `Internal server error`));
+  }
+};
 
-
-
+// userDetails(_address)
 // round 25%
 // round 15%
 // round 10%
