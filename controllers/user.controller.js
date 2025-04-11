@@ -364,7 +364,7 @@ export const changePasswordHandle = async (req, res) => {
 
     // ✅ Validate input
     const schema = Joi.object({
-      email: Joi.string().email().required().messages({
+      email: Joi.string().required().messages({
         "any.required": "Email is required",
       }),
 
