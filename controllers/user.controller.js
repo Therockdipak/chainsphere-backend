@@ -51,8 +51,7 @@ export const userSignupHandle = async (req, res) => {
       dob,
       address,
       zipCode,
-      ibiName,
-      ibiId,
+  
       referralCode, // 👈 Accept referral code if provided
     } = req.body;
 
@@ -69,10 +68,7 @@ export const userSignupHandle = async (req, res) => {
       }),
       address: Joi.string().min(5).max(1000).required(),
       zipCode: Joi.string().required(),
-      ibiName: Joi.string().min(2).max(100).required(),
-      ibiId: Joi.string().alphanum().min(5).max(20).required().messages({
-        "string.alphanum": "IBI ID must contain only letters and numbers",
-      }),
+    
       referralCode: Joi.string().allow("").optional(),
     });
 
@@ -117,8 +113,6 @@ export const userSignupHandle = async (req, res) => {
         dob,
         address,
         zipCode,
-        ibiName,
-        ibiId,
         otp,
         otpExpiresAt: expiryTime,
         referralCode: newReferralCode,

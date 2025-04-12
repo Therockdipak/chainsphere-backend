@@ -94,8 +94,6 @@ model User {
   roll          ROLE      @default(USER)
   address       String
   zipCode       String
-  ibiName       String
-  ibiId         String
   isVerified    Boolean   @default(false)
   otp           String?
   otpExpiresAt  DateTime?
