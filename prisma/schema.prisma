@@ -16,6 +16,7 @@ datasource db {
 enum ROLE {
   ADMIN
   USER
+  SUPERADMIN
 }
 
 // model User {
@@ -127,6 +128,13 @@ model CoreTeamMembers {
   id     Int  @id @default(autoincrement())
   userId Int  @unique
   user   User @relation(fields: [userId], references: [id])
+}
+
+
+model Admin{
+  id       Int      @id    @default(autoincrement())
+  name     String   
+
 }
 
 

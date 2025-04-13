@@ -26,5 +26,8 @@
     "nanoid": "^5.1.5",
     "nodemailer": "^6.10.0",
     "nodemailer-express-handlebars": "^7.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.6.0"
   }
 }
