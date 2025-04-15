@@ -728,6 +728,8 @@ export const updateAddressOfUserHandle = async (req, res) => {
       },
     });
 
+    console.log("isAddressTaken -------------->", isAddressTaken)
+
     if (isAddressTaken) {
       return res
         .status(400)
