@@ -28,7 +28,7 @@ userRouter.post("/signup", userSignupHandle);
 userRouter.post("/login", loginHandle);
 userRouter.post("/verifyOtp", verifyOtpHandle);
 userRouter.post("/resendOtp", resendOtpHandle);
-userRouter.post("/change-password", verifyJwt, changePasswordHandle)
+userRouter.post("/change-password", changePasswordHandle)
 userRouter.get("/referrals", verifyJwt, getAllreferralsHandle)
 userRouter.get("/transactions", verifyJwt, getMyTransactionHandle)
 userRouter.post("/transaction", verifyJwt, transactionDetailsHandle)
